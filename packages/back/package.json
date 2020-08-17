@@ -1,0 +1,9 @@
+{
+  "name": "dt-sender-back",
+  "version": "1.0.0",
+  "description": "Functions to send emails automatically",
+  "main": "index.js",
+  "author": "Multicolaure",
+  "license": "MIT",
+  "private": true
+}

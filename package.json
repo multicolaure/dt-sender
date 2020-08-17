@@ -1,0 +1,16 @@
+{
+  "name": "dt-sender",
+  "version": "1.0.0",
+  "description": "Send Demande de Travaux automatically",
+  "main": "index.js",
+  "author": "Multicolaure",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build"
+  },
+  "devDependencies": {
+    "lerna": "^3.22.1"
+  }
+}
