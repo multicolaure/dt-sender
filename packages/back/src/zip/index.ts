@@ -1,6 +1,6 @@
 
 import unzip, { Entry } from 'unzipper';
-import fs from 'fs';
+import https from 'https';
 import path from 'path';
 
 export interface DtFiles {
@@ -15,7 +15,7 @@ export interface DtFile {
   content: Buffer,
 }
 
-export function extractFileNames(zipFilePath: string): Promise<DtFiles> {
+export function extractFileNames(zipUrl: string): Promise<DtFiles> {
     
     return new Promise((resolve, reject) => {
     
@@ -31,38 +31,40 @@ export function extractFileNames(zipFilePath: string): Promise<DtFiles> {
           }
         }
     
-        fs.createReadStream(zipFilePath)
-        .pipe(unzip.Parse())
-        
-        .on('entry', async function (entry: Entry) {
-          
-          const filePath: string = entry.path;
+        https.get(zipUrl, (response) => {
+          response
+          .pipe(unzip.Parse())
+          .on('entry', async function (entry: Entry) {
+            
+            const filePath: string = entry.path;
 
-          if(filePath.endsWith('emprise.pdf')) {
-            groundCoverage = await getFromEntry(entry);
-          }
-          else if(filePath.endsWith('resume.pdf')) {
-            summary = await getFromEntry(entry);
-          }
-          else if(filePath.endsWith('description.xml') && !filePath.includes('Signature')) {
-            description = await getFromEntry(entry);
-          }
-          else if(filePath.match(/DT_[0-9]*.pdf$/)) {
-            const index = filePath.match(/DT_([0-9]*).pdf$/)![1];
-            operators[parseFloat(index)] = await getFromEntry(entry);
-          }
-          entry.autodrain();
-        })
-        .on('finish', function () {
-          resolve({
-            groundCoverage,
-            summary,
-            description,
-            operators
+            if(filePath.endsWith('emprise.pdf')) {
+              groundCoverage = await getFromEntry(entry);
+            }
+            else if(filePath.endsWith('resume.pdf')) {
+              summary = await getFromEntry(entry);
+            }
+            else if(filePath.endsWith('description.xml') && !filePath.includes('Signature')) {
+              description = await getFromEntry(entry);
+            }
+            else if(filePath.match(/DT_[0-9]*.pdf$/)) {
+              const index = filePath.match(/DT_([0-9]*).pdf$/)![1];
+              operators[parseFloat(index)] = await getFromEntry(entry);
+            }
+            entry.autodrain();
+          })
+          .on('finish', function () {
+            resolve({
+              groundCoverage,
+              summary,
+              description,
+              operators
+            });
+          })
+          .on('error', function (error: Error) {
+              reject(error);
           });
-        })
-        .on('error', function (error: Error) {
-            reject(error);
         });
+        
     });
 }
