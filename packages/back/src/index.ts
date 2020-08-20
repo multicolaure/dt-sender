@@ -8,12 +8,9 @@ const { EMAIL_PASSWORD } = process.env
 
 exports.handler = async function(event: any, context: any, callback: any) {
 
-    const formPayload = JSON.parse(event.body).payload;
+    const form = JSON.parse(event.body).payload.data;
 
-    const zipFile = formPayload.attachment;
-
-    console.log(formPayload);
-    console.log(event);
+    const zipFile = form.attachment.url;
 
     return sendDt(zipFile)
     .then((emails) => {
@@ -22,7 +19,7 @@ exports.handler = async function(event: any, context: any, callback: any) {
             statusCode: 200,
             body: JSON.stringify(emails)
         });
-    })
+    });
 }
 
 async function sendDt(zipFile: string) {
