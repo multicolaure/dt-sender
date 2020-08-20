@@ -35,7 +35,7 @@ function sendDummyEmails(dtCode: string, operators: Array<Operator>, dtFiles: Dt
         host: 'smtp.gmail.com',
         email: 'laure.chausse@gmail.com',
         port: 465,
-        password: EMAIL_PASSWORD,
+        password: EMAIL_PASSWORD ?? '',
     });
 
     operators.slice(0, 2).forEach(operator => {
