@@ -6,13 +6,16 @@ import { Mailer } from "./email/index";
 
 const { EMAIL_PASSWORD } = process.env
 
-exports.handler = function(event: any, context: any, callback: any) {
+exports.handler = async function(event: any, context: any, callback: any) {
 
     const formPayload = JSON.parse(event.body).payload;
 
     const zipFile = formPayload.attachment;
 
-    sendDt(zipFile)
+    console.log(formPayload);
+    console.log(event);
+
+    return sendDt(zipFile)
     .then((emails) => {
 
         callback(null, {
