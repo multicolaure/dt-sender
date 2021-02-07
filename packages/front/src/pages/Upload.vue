@@ -1,15 +1,15 @@
 <template>
-  <main class="lg:main p-4">
-    <section class="card lg:w-2/3 mx-auto">
+  <main class="main p-4">
+    <section class="card w-2/3 mx-auto">
       <header class="card-header">
         Chargez le fichier zip reçu de "Réseaux et canalisations"
       </header>
       <section class="card-body">
-        <!--DropFile @upload="upload" /-->
+        <DropFile @upload="upload" />
       </section>
     </section>
   </main>
-  <aside class="lg:aside">
+  <aside class="aside">
     <h2 class="h2">Comment ça marche ?</h2>
     <h3 class="h3"><span class="numero">1</span>Créer une demande</h3>
     <ol class="list-decimal pl-4 py-3">
@@ -37,7 +37,7 @@ import DropFileLink from '../components/drop/DropFileLink.vue';
 export default defineComponent({
   name: 'App',
   components: {
-    //DropFile,
+    DropFile,
     DropFileLink,
   },
   emits: ['uploaded'],

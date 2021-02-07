@@ -9,7 +9,7 @@
     </a>
     <h2 class="text-md text-neutral">envoyez des demandes de travaux en un clic</h2>
   </div>
-  <div><button class="p-3"><Icon name="github" size="lg"/></button></div>
+  <div><a class="p-3" title="Github" href="https://github.com/multicolaure/rene" target="_blank"><Icon name="github" size="lg"/></a></div>
 </div>
 <Upload v-if="currentPage === Page.UPLOAD" @uploaded="onUploaded" />
 <Preview v-if="currentPage === Page.PREVIEW" :emails="emails" :code="code" @send="onSend" />
