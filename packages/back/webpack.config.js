@@ -13,12 +13,15 @@ module.exports = {
       },
     ],
   },
+  node: {
+    __dirname: false,
+  },
   resolve: {
     extensions: [ '.tsx', '.ts', '.js' ],
   },
   output: {
-    filename: 'submission-created.js',
-    path: path.resolve(__dirname, '../../dist/functions/'),
+    filename: 'back.js',
+    path: path.resolve(__dirname, '../../dist/'),
   },
   plugins: [
     new webpack.optimize.LimitChunkCountPlugin({

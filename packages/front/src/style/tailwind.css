@@ -1,0 +1,47 @@
+/*! @import */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+
+  .default-margins {
+    @apply px-4 py-2 md:px-8 md:py-4;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded font-bold;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white;
+  }
+
+  .card {
+    @apply bg-white rounded shadow;
+  }
+
+  .card-header {
+    @apply border-b border-neutral-light default-margins text-lg text-primary font-bold;
+  }
+
+  .card-body {
+    @apply p-4 p-4 md:p-8;
+  }
+
+  .form-label {
+    @apply text-primary flex flex-col;
+  }
+
+  .form-input {
+    @apply bg-neutral-light text-primary px-4 py-2 rounded;
+  }
+
+  .aside {
+    @apply w-1/4 bg-white border-l border-neutral-light default-margins;
+  }
+
+  .main {
+    @apply flex-grow default-margins; 
+  }
+}

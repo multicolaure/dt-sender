@@ -1,7 +1,4 @@
-
-import unzip, { Entry } from 'unzipper';
-import https from 'https';
-import path from 'path';
+import AdmZip from 'adm-zip';
 
 export interface DtFiles {
   groundCoverage: DtFile,
@@ -15,56 +12,53 @@ export interface DtFile {
   content: Buffer,
 }
 
-export function extractFileNames(zipUrl: string): Promise<DtFiles> {
-    
-    return new Promise((resolve, reject) => {
-    
-        let groundCoverage: DtFile;
-        let summary: DtFile;
-        let description: DtFile;
-        let operators: Array<DtFile> = [];
 
-        const getFromEntry = async (entry: Entry): Promise<DtFile> => {
-          return {
-            filename: path.basename(entry.path),
-            content: await entry.buffer(),
-          }
+function getFileFromEntry(entry: AdmZip.IZipEntry): Promise<DtFile> {
+  return new Promise((resolve) => {
+    entry.getDataAsync((data: Buffer) => {
+      resolve({
+        filename: entry.name,
+        content: data,
+      });
+    });
+  });
+}
+
+export async function extractFileNames(zip: string | Buffer): Promise<DtFiles> {
+
+  let groundCoverage: DtFile;
+  let summary: DtFile;
+  let description: DtFile;
+  let operators: Array<DtFile> = [];
+
+  return Promise.all(new AdmZip(zip).getEntries()
+    .map(async entry => {
+      const filePath: string = entry.entryName;
+
+        if (filePath.endsWith('emprise.pdf')) {
+          groundCoverage = await getFileFromEntry(entry);
         }
-    
-        https.get(zipUrl, (response) => {
-          response
-          .pipe(unzip.Parse())
-          .on('entry', async function (entry: Entry) {
-            
-            const filePath: string = entry.path;
-
-            if(filePath.endsWith('emprise.pdf')) {
-              groundCoverage = await getFromEntry(entry);
-            }
-            else if(filePath.endsWith('resume.pdf')) {
-              summary = await getFromEntry(entry);
-            }
-            else if(filePath.endsWith('description.xml') && !filePath.includes('Signature')) {
-              description = await getFromEntry(entry);
-            }
-            else if(filePath.match(/DT_[0-9]*.pdf$/)) {
-              const index = filePath.match(/DT_([0-9]*).pdf$/)![1];
-              operators[parseFloat(index)] = await getFromEntry(entry);
-            }
-            entry.autodrain();
-          })
-          .on('finish', function () {
-            resolve({
-              groundCoverage,
-              summary,
-              description,
-              operators
-            });
-          })
-          .on('error', function (error: Error) {
-              reject(error);
-          });
-        });
-        
+        else if (filePath.endsWith('resume.pdf')) {
+          summary = await getFileFromEntry(entry);
+        }
+        else if (filePath.endsWith('DT_description.zip')) {
+          const filesFromSubzip = await extractFileNames(entry.getData());
+          description = filesFromSubzip.description;
+        }
+        else if (filePath.endsWith('DT_description.xml') && !filePath.startsWith('Signature')) {
+          description = await getFileFromEntry(entry);
+        }
+        else if (filePath.match(/DT_[0-9]*.pdf$/)) {
+          const index = filePath.match(/DT_([0-9]*).pdf$/)![1];
+          operators[parseFloat(index)] = await getFileFromEntry(entry);
+        }
+    }))
+    .then(() => {
+      return {
+        groundCoverage,
+        summary,
+        description,
+        operators
+      };
     });
 }

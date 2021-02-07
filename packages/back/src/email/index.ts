@@ -1,12 +1,12 @@
 import nodemailer from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
-import { Operator } from '../dt/index';
 
 export interface EmailSender {
     host: string,
     port: number,
     email: string,
     password: string,
+    replyTo: string,
 }
 
 export interface Email {
@@ -38,13 +38,16 @@ export class Mailer {
     }
 
     sendEmail(email: Email) {
-        return this.transporter.sendMail({
+        const mail = {
             from: this.sender.email,
+            sender: this.sender.replyTo,
+            replyTo: this.sender.replyTo,
             to: email.recipient,
             subject: email.subject,
             html: email.body,
             attachments: email.attachments
-        })
+        };
+        return this.transporter.sendMail(mail).then(() => email);
     }
 
     verify() {

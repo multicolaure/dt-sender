@@ -1,14 +1,20 @@
 {
-  "name": "dt-sender",
+  "name": "rene",
   "version": "1.0.0",
-  "description": "Send Demande de Travaux automatically",
+  "description": "Envoyer des demandes de travaux automatiquement",
   "main": "index.js",
   "author": "Multicolaure",
   "license": "MIT",
   "private": true,
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "build": "yarn bootstrap && lerna run build"
+    "build": "yarn bootstrap && lerna run build",
+    "build:front": "lerna run build --scope @rene/front",
+    "build:back": "lerna run build --scope @rene/back",
+    "start": "node dist/back.js",
+    "dev": "lerna run dev --parallel",
+    "dev:front": "lerna run dev --scope @rene/front --parallel",
+    "dev:back": "lerna run dev --scope @rene/back --parallel"
   },
   "devDependencies": {
     "lerna": "^3.22.1"

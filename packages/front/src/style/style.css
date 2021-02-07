@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap');
+@layer components {
+
+    .default-margins {
+      @apply px-4 py-2 md:px-8 md:py-4;
+    }
+  
+    .btn {
+      @apply px-4 py-2 rounded font-bold;
+    }
+  
+    .btn-primary {
+      @apply bg-primary text-white;
+    }
+
+    .btn-success {
+      @apply bg-success text-white;
+    }
+
+    .btn-failure {
+      @apply bg-failure text-white;
+    }
+  
+    .card {
+      @apply bg-white rounded shadow;
+    }
+  
+    .card-header {
+      @apply border-b border-neutral-light default-margins text-lg text-primary font-bold;
+    }
+  
+    .card-body {
+      @apply p-4 md:p-8;
+    }
+
+    .card-footer {
+      @apply default-margins border-t border-neutral-light;
+    }
+  
+    .form-label {
+      @apply text-primary flex flex-col;
+    }
+
+    .form-label-checkbox {
+      @apply text-primary flex;
+      
+    }
+
+    .form-label-checkbox input {
+      @apply mx-2;
+    }
+  
+    .form-input {
+      @apply bg-neutral-light text-primary px-4 py-2 rounded;
+    }
+
+    .h2 {
+      @apply text-xl font-bold mt-4;
+    }
+
+    .h3 {
+      @apply text-lg font-bold text-primary-lighter mt-4;
+    }
+
+    p {
+      @apply my-2;
+    }
+
+    .link {
+      @apply text-primary-light font-medium;
+    }
+
+    .link:hover, .link:active, .link:focus {
+      text-decoration: underline;
+    }
+
+    .numero {
+      @apply text-white bg-primary-lighter rounded-full h-8 w-8 inline-flex justify-center items-center font-normal text-base mr-4;
+    }
+
+    #app {
+      @apply bg-neutral-light;
+      min-height: 100vh;
+      display: grid; 
+      grid-template-columns: auto minmax(320px, 25%);
+      grid-template-rows: 70px auto;
+      grid-template-areas: 
+        "header header"
+        "main aside";
+    }
+
+    .topbar {
+      @apply bg-primary text-white px-8 py-6 flex items-center justify-between;
+      grid-area: header;
+    }
+
+    .topbar > * > * {
+      @apply mx-2;
+    }
+  
+    .aside {
+      @apply w-full bg-white border-l border-neutral-light default-margins; 
+      grid-area: aside;
+
+    }
+  
+    .main {
+      grid-area: main;
+    }
+
+
+
+
+  }
+  

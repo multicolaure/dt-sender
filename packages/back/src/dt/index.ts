@@ -1,5 +1,6 @@
 import pdfjs, { PDFDocumentProxy, PDFPromise, TextContentItem } from 'pdfjs-dist';
 import { flatten, range } from 'lodash';
+import { DtFiles } from '../zip/index';
 
 export interface Operator {
     index: number,
@@ -15,9 +16,10 @@ export function getOperators(buffer: Buffer): Promise<Array<Operator>> {
 
     // @ts-ignore
     return getDocument(arrayBuffered)
-    .then(doc => Promise.all([
-        getOperatorNames(doc),
-        getOperatorsEmails(doc),
+    .then(doc => findPageWith(doc, 'Liste des exploitants').then(indexPageNumber => [doc, indexPageNumber] as [PDFDocumentProxy, number]))
+    .then(([doc, indexPageNumber]) => Promise.all([
+        getOperatorNames(doc, indexPageNumber),
+        getOperatorsEmails(doc, indexPageNumber),
     ]))
     .then(([names, emails]) => {
         return Object.entries(names)
@@ -29,9 +31,10 @@ export function getOperators(buffer: Buffer): Promise<Array<Operator>> {
     });
 }
 
-function getOperatorNames(doc: PDFDocumentProxy): Promise<Names> {
+function getOperatorNames(doc: PDFDocumentProxy, indexPageNumber: number): Promise<Names> {
 
-    return getPageContent(doc, 6)
+    
+    return getPageContent(doc, indexPageNumber)
         .then(content => {
             const starter = 'Société';
             const starterIndex = content.findIndex((item) => item.str === starter);
@@ -58,11 +61,11 @@ function getOperatorNames(doc: PDFDocumentProxy): Promise<Names> {
     
 }
 
-function getOperatorsEmails(doc: PDFDocumentProxy): Promise<Emails> {
+function getOperatorsEmails(doc: PDFDocumentProxy, indexPageNumber: number): Promise<Emails> {
 
     const numbPages = doc.numPages;
 
-    const pageContentPromises = range(7, numbPages)
+    const pageContentPromises = range(indexPageNumber+1, numbPages)
         .map(page => getPageContent(doc, page)
             .then(content => content.map(item => item.str)));
 
@@ -106,6 +109,10 @@ function getOperatorsEmails(doc: PDFDocumentProxy): Promise<Emails> {
     
 }
 
+export function getDtCode(dtFiles: DtFiles) {
+    return dtFiles.groundCoverage.filename.replace('_DT_emprise.pdf', '');
+}
+
 
 function getDocument(filePath: string): Promise<PDFDocumentProxy> {
     return toPromise(pdfjs.getDocument(filePath).promise);
@@ -117,8 +124,36 @@ function getPageContent(doc: PDFDocumentProxy, page: number): Promise<Array<Text
         .then(content => content.items);
 }
 
+async function findPageWith(doc: PDFDocumentProxy, search: string): Promise<number> {
+    return findAsync(range(1, doc.numPages), (pageNumber) => {
+        return getPageContent(doc, pageNumber)
+        .then((content) => {
+            return content.findIndex((textContentItem: TextContentItem) => textContentItem.str.includes(search)) >= 0;
+        });
+    })
+    .then(pageNumber => {
+        if(!pageNumber) {
+            throw new Error('Could not find' + search);
+        }
+        return pageNumber;
+    });
+}
+
 function toPromise<T>(promise: PDFPromise<T>) : Promise<T> {
     return new Promise((resolve, reject) => promise
     .then((data) => resolve(data),
         (error) => reject(error)));
 }
+
+async function findAsync<T>(
+    array: T[],
+    predicate: (t: T) => Promise<boolean>,
+  ): Promise<T | undefined> {
+    for (const t of array) {
+      if (await predicate(t)) {
+        return t;
+      }
+    }
+    return undefined;
+  }
+  

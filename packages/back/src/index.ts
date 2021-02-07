@@ -1,55 +1,99 @@
+require('dotenv').config();
 
-import { extractFileNames, DtFiles } from "./zip/index";
-import { getOperators, Operator } from "./dt/index";
-import { Mailer } from "./email/index";
+import express from 'express';
+import fileUpload, { UploadedFile } from 'express-fileupload';
+import bodyParser from 'body-parser';
+import path from 'path';
+import cors from 'cors';
+import { Email } from './email/index';
+import { sendDt, prepareDt, PreparedDT } from './rene';
 
 
-const { EMAIL_PASSWORD } = process.env
+const { SENDER_EMAIL, SENDER_HOST, SENDER_PASSWORD } = process.env;
+if(!SENDER_EMAIL || !SENDER_HOST || !SENDER_PASSWORD) {
+    throw new Error('You must set all mandatory environment variables SENDER_EMAIL, SENDER_PASSWORD and SENDER_HOST');
+}
 
-exports.handler = async function(event: any, context: any, callback: any) {
 
-    const form = JSON.parse(event.body).payload.data;
-
-    const zipFile = form.attachment.url;
-
-    return sendDt(zipFile)
-    .then((emails) => {
-
-        callback(null, {
-            statusCode: 200,
-            body: JSON.stringify(emails)
-        });
+function emailsForFront(emails: Array<Email>) {
+    return emails.map(email => {
+        return {
+            ...email,
+            attachments: email.attachments.map(attachment => attachment.filename)
+        };
     });
 }
 
-async function sendDt(zipFile: string) {
+const app = express();
+const port = 3000;
 
-    const files = await extractFileNames(zipFile);
-    const operators = await getOperators(files.summary.content);
-    const emails = sendDummyEmails('Hello', operators, files);
-    return emails;
+app.use(fileUpload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/rene'
+}));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+if (process.env.NODE_ENV === 'development') {
+    console.warn('Allowing CORS from any origin');
+    app.use(cors());
 }
 
-function sendDummyEmails(dtCode: string, operators: Array<Operator>, dtFiles: DtFiles) {
-    const mailer = new Mailer({
-        host: 'smtp.gmail.com',
-        email: 'laure.chausse@gmail.com',
+app.post('/send', (req, res) => {
+    const zip = req.files?.attachment as UploadedFile;
+
+    if (!SENDER_HOST || !SENDER_EMAIL || !SENDER_PASSWORD) {
+        res.status(500);
+        res.json({
+            error: 'The server must be configured with SMTP host, email and password to send emails!',
+        });
+        res.end();
+        return;
+    }
+
+    const emailSender = {
+        host: SENDER_HOST,
+        email: SENDER_EMAIL,
+        replyTo: req.body.email,
         port: 465,
-        password: EMAIL_PASSWORD ?? '',
-    });
+        password: SENDER_PASSWORD,
+    }
 
-    operators.slice(0, 2).forEach(operator => {
+    const emailBody = req.body.emailBody;
 
-        mailer.sendEmail({
-            recipient: 'laure.chausse@gmail.com',
-            subject: 'Sending to ' + operator.email,
-            body: 'Some stuff',
-            attachments: [
-                dtFiles.description,
-                dtFiles.groundCoverage,
-                dtFiles.operators[operator.index]
-            ]
+    sendDt(zip.tempFilePath, emailSender, emailBody)
+        .then(emails => {
+            console.log('All emails sent.');
+            res.json(emailsForFront(emails));
+            res.end();
         });
-    })
+})
 
-}
+
+app.post('/prepare', (req, res) => {
+    const zip = req.files?.attachment as UploadedFile;
+
+    const emailBody = req.body.emailBody;
+
+    prepareDt(zip.tempFilePath, emailBody)
+        .then(({ emails, code }: PreparedDT) => {
+            res.json({
+                emails: emailsForFront(emails),
+                code,
+            });
+            res.end();
+        });
+})
+
+
+app.listen(port, () => {
+
+    console.log(`Ready to send emails from ${SENDER_EMAIL} with host ${SENDER_HOST}`);
+
+    const { DEBUG_RECIPIENT } = process.env;
+    if (DEBUG_RECIPIENT) {
+        console.log(`Debug mode, emails will always to sent to ${DEBUG_RECIPIENT}.`);
+    }
+
+    console.log(`Running on port ${port}`);
+});
