@@ -51,18 +51,18 @@ export function prepareEmails(dtCode: string, operators: Array<Operator>, dtFile
 export function sendEmails(emails: Array<Email>, sender: EmailSender) {
     const mailer = new Mailer(sender);
     return Promise.all(emails.map(email => {
-        console.log(`Dummy sending emails to ${email.recipient} with sender ${sender.host}, ${sender.email} ${sender.password} ${sender.replyTo}`);
+        /*console.log(`Dummy sending emails to ${email.recipient} with sender ${sender.host}, ${sender.email} ${sender.password} ${sender.replyTo}`);
         return new Promise((resolve) => {
 
             setTimeout(() => {
                 resolve(email);
             }, 700);
-        });
-        /*
+        });*/
+        
         return mailer.sendEmail(email)
             .then(email => {
                 console.log(`Email sent to ${email.recipient} with ${email.attachments?.length} attachments.`);
                 return email;
-            })*/
+            })
     }));
 }

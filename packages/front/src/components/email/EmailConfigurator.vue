@@ -2,20 +2,22 @@
   <form @submit.prevent="onSend()">
     <div class="flex flex-col space-y-5">
       <label class="form-label"
-        ><span>Email de réponse</span>
+        ><span>Email de réponse *</span>
         <input
           type="email"
           name="email"
+          required
           class="form-input"
           :value="config.email"
           @input="this.email = $event.target.value"
         />
       </label>
       <label class="form-label">
-        <span>Message</span>
+        <span>Message *</span>
         <textarea 
           rows="7"
           class="form-input"
+          required
           :value="config.message"
           @input="this.message = $event.target.value; this.emailBodyChange($event.target.value)"
         ></textarea>
